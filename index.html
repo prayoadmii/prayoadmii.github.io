@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Moved To New Domain!</title>
+        <link rel="icon" href="https://prayoadmii.neocities.org/Assets/Icons/WebsideIcon.png">
+
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                background: #000000;
+                overflow: hidden;
+            }
+
+            #animated-stars-background {
+                position: fixed;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+                pointer-events: none;
+            }
+
+            #scene {
+                position: fixed;
+                inset: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 2;
+                pointer-events: none;
+                will-change: transform;
+            }
+
+            #dropship-overlay {
+                position: absolute;
+                width: 170vw;
+                height: 170vh;
+                max-width: none;
+                object-fit: contain;
+                flex-shrink: 0;
+                user-select: none;
+                -webkit-user-drag: none;
+                will-change: transform;
+                animation: dropship-shake 0.2s infinite;
+            }
+
+            @keyframes dropship-shake {
+                0%   { transform: translate(0, 0) rotate(0deg) scale(1); }
+                25%  { transform: translate(-3px, 2px) rotate(-0.15deg) scale(1.002); }
+                50%  { transform: translate(3px, -2px) rotate(0.15deg) scale(1); }
+                75%  { transform: translate(-2px, -1px) rotate(-0.1deg) scale(1.001); }
+                100% { transform: translate(2px, 2px) rotate(0.1deg) scale(1); }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                #dropship-overlay {
+                    animation: none;
+                }
+            }
+
+            .content-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 16px;
+                padding: 24px;
+                background-color: rgba(0, 0, 0, 0.6);
+                color: white;
+                text-align: center;
+                pointer-events: none;
+            }
+
+            .content-overlay h1 {
+                margin: 0;
+                font-size: clamp(2rem, 5vw, 4rem);
+                font-family: inherit;
+                text-shadow: 0 3px 12px rgba(0, 0, 0, 0.9);
+            }
+
+            .content-overlay p {
+                max-width: 600px;
+                margin: 0;
+                font-size: clamp(1rem, 2.5vw, 1.3rem);
+                line-height: 1.6;
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 1);
+            }
+
+            .content-overlay a {
+                pointer-events: auto;
+                position: relative;
+                z-index: 10000;
+                color: #8ab4ff;
+                text-decoration: none;
+                cursor: pointer;
+            }
+        </style>
+
+        <link rel="stylesheet" href="https://cd.praysys.qzz.io/assets/css/fonts.css">
+    </head>
+
+    <body>
+        <!-- Background Music -->
+        <audio id="bgm" loop>
+            <source src="https://nu.vgmtreasurechest.com/soundtracks/among-us/mwvpoxxu/02.%20Maiden%20Voyage%20-%20Theme%20of%20Skeld.mp3">
+        </audio>
+        <script src="https://cd.praysys.qzz.io/assets/js/background-music.js"></script>
+        <!-- Background Music -->
+
+        <canvas id="animated-stars-background"></canvas>
+
+        <div id="scene">
+            <img id="dropship-overlay" src="https://prayoadmii.neocities.org/Assets/dropship.png" alt="Among Us Dropship Overlay">
+        </div>
+
+        <div class="content-overlay">
+            <h1>We're Moved To New Website!</h1>
+            <p>Thank You For Visiting But This Domain Is No-Longer Maintained!</p>
+            <p>Looking For New Website? <a href="https://prayoadmii.qzz.io/">Visit Us!</a></p>
+            <p><a href="https://prayoadmii.neocities.org/note.txt" target="_blank">Note For Neocities Team</a></p>
+        </div>
+
+        <script>
+            (() => {
+                const canvas = document.getElementById("animated-stars-background");
+                const ctx = canvas.getContext("2d");
+                const scene = document.getElementById("scene");
+
+                const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+                let width = 0;
+                let height = 0;
+                let stars = [];
+                let animationFrame = null;
+                let lastTime = 0;
+
+                const STAR_COUNT = 220;
+                const BASE_SPEED = 900;
+                const SHAKE_INTENSITY = 7;
+
+                function resize() {
+                    const dpr = Math.min(
+                        window.devicePixelRatio || 1,
+                        2
+                    );
+
+                    width = window.innerWidth;
+                    height = window.innerHeight;
+
+                    canvas.width = Math.round(width * dpr);
+                    canvas.height = Math.round(height * dpr);
+
+                    canvas.style.width = width + "px";
+                    canvas.style.height = height + "px";
+
+                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+                    stars = Array.from(
+                        { length: STAR_COUNT },
+                        () => createStar(true)
+                    );
+                }
+
+                function createStar(randomY = false) {
+                    return {
+                        x: Math.random() * width,
+
+                        y: randomY
+                            ? Math.random() * height
+                            : -Math.random() * 100,
+                        
+                        length: Math.random() * 35 + 8,
+
+                        speed: BASE_SPEED * (
+                            0.45 + Math.random() * 1.5
+                        ),
+
+                        brightness: 0.35 + Math.random() * 0.65,
+                        thickness: Math.random() * 1.4 + 0.3
+                    };
+                }
+
+                function drawStars(delta) {
+                    ctx.clearRect(0, 0, width, height);
+
+                    for (let i = 0; i < stars.length; i++) {
+                        const star = stars[i];
+
+                        star.y += star.speed * delta;
+
+                        if (star.y - star.length > height) {
+                            stars[i] = createStar(false);
+
+                            continue;
+                        }
+
+                        const streak = Math.min(
+                            star.length,
+                            star.speed * 0.045
+                        );
+
+                        ctx.beginPath();
+
+                        ctx.moveTo(star.x, star.y - streak);
+                        ctx.lineTo(star.x, star.y);
+
+                        ctx.strokeStyle = `rgba(210, 225, 255, ${star.brightness})`;
+
+                        ctx.lineWidth = star.thickness;
+
+                        ctx.stroke();
+                    }
+                }
+
+                function shakeScene(time) {
+                    if (reducedMotion) {
+                        scene.style.transform = "none";
+
+                        return;
+                    }
+
+                    const x = (Math.random() - 0.5) * SHAKE_INTENSITY * 2;
+                    const y = (Math.random() - 0.5) * SHAKE_INTENSITY * 2;
+
+                    const rotation = (Math.random() - 0.5) * 0.7;
+
+                    scene.style.transform = `translate(${x}px, ${y}px) rotate(${rotation}deg)`;
+                }
+
+                function animate(timestamp) {
+                    if (!lastTime) lastTime = timestamp;
+
+                    const delta = Math.min(
+                        (timestamp - lastTime) / 1000,
+                        0.05
+                    );
+
+                    lastTime = timestamp;
+
+                    if (!reducedMotion) {
+                        drawStars(delta);
+                        shakeScene(timestamp);
+
+                        animationFrame = requestAnimationFrame(animate);
+                    } else {
+                        ctx.clearRect(0, 0, width, height);
+
+                        for (const star of stars) {
+                            ctx.fillStyle = `rgba(210, 225, 255, ${star.brightness})`;
+
+                            ctx.fillRect(star.x, star.y, 1.5, 1.5);
+                        }
+                    }
+                }
+
+                window.addEventListener("resize", resize);
+
+                document.addEventListener("visibilitychange", () => {
+                    if (document.hidden) {
+                        cancelAnimationFrame(animationFrame);
+                        lastTime = 0;
+                    } else if (!reducedMotion) {
+                        cancelAnimationFrame(animationFrame);
+                        lastTime = 0;
+                        animationFrame = requestAnimationFrame(animate);
+                    }
+                });
+
+                resize();
+
+                if (reducedMotion) {
+                    animate(0);
+                } else {
+                    animationFrame = requestAnimationFrame(animate);
+                }
+            })();
+        </script>
+    </body>
+</html>
